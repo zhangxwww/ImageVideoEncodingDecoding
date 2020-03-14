@@ -1,5 +1,7 @@
 import numpy as np
 
+from util import timing, psnr
+
 
 def dct1d(f):
     f = f.reshape(-1, 1)
@@ -49,11 +51,7 @@ def _A(n):
 
 
 def retain(F, n):
-    mask = np.zeros_like(F)
-    if F.ndim == 2:
-        mask = _zigzag(F.shape[0]) < n + 0
-    else:
-        mask[:n] = 1
+    mask = _zigzag(F.shape[0]) < n + 0
     return F * mask
 
 
@@ -72,10 +70,42 @@ def _zigzag(n):
     return a
 
 
+def _first_row_then_column(img):
+    n, m = img.shape
+    rows = np.zeros_like(img)
+    for i in range(n):
+        rows[i] = dct1d(img[i])
+    res = np.zeros_like(img)
+    for i in range(m):
+        res[:, i] = dct1d(rows[:, i])
+    return res
+
+def _inverse_first_row_then_column(F):
+    n, m = F.shape
+    rows = np.zeros_like(F)
+    for i in range(m):
+        rows[:, i] = idct1d(F[:, i])
+    res = np.zeros_like(F)
+    for i in range(n):
+        res[i] = idct1d(rows[i])
+    return res.astype(np.uint8)
+
+
+@timing('1D DCT on the whole image')
+def trial_1(img):
+    return _first_row_then_column(img)
+
 def transform_experiment(img):
+    img_f = img.astype(float)
+    t1 = trial_1(img_f)
+    r1 = _inverse_first_row_then_column(t1)
+    from imageProcesser import convert_to_image
+    convert_to_image(r1)
+    print(psnr(img, r1))
+
+    '''
     f = img[0]
     dct = dct1d(f)
-    dct = retain(dct, 4)
     idct = idct1d(dct)
     print((f - idct).sum())
 
@@ -84,4 +114,5 @@ def transform_experiment(img):
     idct = idct2d(dct)
 
     print((img - idct).sum())
+    '''
     pass
