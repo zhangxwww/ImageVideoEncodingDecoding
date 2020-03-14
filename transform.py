@@ -3,6 +3,41 @@ import numpy as np
 from util import timing, psnr
 
 
+def transform_experiment(img):
+    img_f = img.astype(float)
+    from imageProcesser import convert_to_image
+
+    t1 = trial_1(img_f)
+    r1 = _inverse_first_row_then_column(t1)
+    convert_to_image(r1)
+    print(psnr(img, r1.astype(np.uint8)))
+
+    t2 = trial_2(img_f)
+    r2 = idct2d(t2)
+    convert_to_image(r2)
+    print(psnr(img, r2.astype(np.uint8)))
+
+    t3 = trial_3(img_f)
+    r3 = _idct_block(t3)
+    convert_to_image(r3)
+    print(psnr(img, r3.astype(np.uint8)))
+
+
+@timing('1D-DCT on the whole image')
+def trial_1(img):
+    return _first_row_then_column(img)
+
+
+@timing('2D-DCT on the whole image')
+def trial_2(img):
+    return dct2d(img)
+
+
+@timing('2D-DCT on 8*8 blocks')
+def trial_3(img):
+    return _dct_block(img)
+
+
 def dct1d(f):
     f = f.reshape(-1, 1)
     n = f.shape[0]
@@ -41,6 +76,11 @@ def idct2d(F):
     return A.T.dot(F).dot(A)
 
 
+def retain(F, n):
+    mask = _zigzag(F.shape[0]) < n + 0
+    return F * mask
+
+
 def _A(n):
     c = np.ones((1, n)) * np.sqrt(2 / n)
     c[0, 0] = np.sqrt(1 / n)
@@ -48,11 +88,6 @@ def _A(n):
     j = np.linspace(0, n - 1, n).reshape(-1, 1)
     A = c * np.cos(np.pi * (2 * j + 1) * i / (2 * n))
     return A
-
-
-def retain(F, n):
-    mask = _zigzag(F.shape[0]) < n + 0
-    return F * mask
 
 
 def _zigzag(n):
@@ -80,6 +115,7 @@ def _first_row_then_column(img):
         res[:, i] = dct1d(rows[:, i])
     return res
 
+
 def _inverse_first_row_then_column(F):
     n, m = F.shape
     rows = np.zeros_like(F)
@@ -88,31 +124,26 @@ def _inverse_first_row_then_column(F):
     res = np.zeros_like(F)
     for i in range(n):
         res[i] = idct1d(rows[i])
-    return res.astype(np.uint8)
+    return res
 
 
-@timing('1D DCT on the whole image')
-def trial_1(img):
-    return _first_row_then_column(img)
+def _dct_block(img):
+    n_block_rows = img.shape[0] // 8
+    n_block_cols = img.shape[1] // 8
+    res = np.zeros_like(img)
+    for i in range(n_block_rows):
+        for j in range(n_block_cols):
+            res[i * 8:(i + 1) * 8, j * 8:(j + 1) * 8] \
+                = dct2d(img[i * 8:(i + 1) * 8, j * 8:(j + 1) * 8])
+    return res
 
-def transform_experiment(img):
-    img_f = img.astype(float)
-    t1 = trial_1(img_f)
-    r1 = _inverse_first_row_then_column(t1)
-    from imageProcesser import convert_to_image
-    convert_to_image(r1)
-    print(psnr(img, r1))
 
-    '''
-    f = img[0]
-    dct = dct1d(f)
-    idct = idct1d(dct)
-    print((f - idct).sum())
-
-    dct = dct2d(img)
-    dct = retain(dct, 64 * 64)
-    idct = idct2d(dct)
-
-    print((img - idct).sum())
-    '''
-    pass
+def _idct_block(F):
+    n_block_rows = F.shape[0] // 8
+    n_block_cols = F.shape[1] // 8
+    res = np.zeros_like(F)
+    for i in range(n_block_rows):
+        for j in range(n_block_cols):
+            res[i * 8:(i + 1) * 8, j * 8:(j + 1) * 8] \
+                = idct2d(F[i * 8:(i + 1) * 8, j * 8:(j + 1) * 8])
+    return res
