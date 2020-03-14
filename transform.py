@@ -14,10 +14,6 @@ def dct1d(f):
     return F
 
 
-def dct2d(f):
-    pass
-
-
 def idct1d(F):
     F = F.reshape(-1, 1)
     n = F.shape[0]
@@ -31,8 +27,24 @@ def idct1d(F):
     return f
 
 
+def dct2d(f):
+    n = f.shape[0]
+    A = _A(n)
+    return A.dot(f).dot(A.T)
+
+
 def idct2d(F):
-    pass
+    n = F.shape[0]
+    A = _A(n)
+    return A.T.dot(F).dot(A)
+
+def _A(n):
+    c = np.ones((1, n)) * np.sqrt(2 / n)
+    c[0, 0] = np.sqrt(1 / n)
+    i = np.linspace(0, n - 1, n).reshape(1, -1)
+    j = np.linspace(0, n - 1, n).reshape(-1, 1)
+    A = c * np.cos(np.pi * (2 * j + 1) * i / (2 * n))
+    return A
 
 
 def retain(n):
@@ -40,8 +52,13 @@ def retain(n):
 
 
 def transform_experiment(img):
+    '''
     f = img[0]
     dct = dct1d(f)
     idct = idct1d(dct)
     print(f - idct)
+    dct = dct2d(img)
+    idct = idct2d(dct)
+    print((img - idct).sum())
+    '''
     pass
