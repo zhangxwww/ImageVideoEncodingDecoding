@@ -10,3 +10,8 @@ def read_image(filename):
 def convert_to_gray(img):
     img = img.convert('L')
     return np.array(img)
+
+def convert_to_image(img):
+    img = Image.fromarray(img.astype('uint8'))
+    img.show()
+    return img

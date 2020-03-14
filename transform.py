@@ -38,6 +38,7 @@ def idct2d(F):
     A = _A(n)
     return A.T.dot(F).dot(A)
 
+
 def _A(n):
     c = np.ones((1, n)) * np.sqrt(2 / n)
     c[0, 0] = np.sqrt(1 / n)
@@ -47,18 +48,40 @@ def _A(n):
     return A
 
 
-def retain(n):
-    pass
+def retain(F, n):
+    mask = np.zeros_like(F)
+    if F.ndim == 2:
+        mask = _zigzag(F.shape[0]) < n + 0
+    else:
+        mask[:n] = 1
+    return F * mask
+
+
+def _zigzag(n):
+    a = np.zeros((n, n))
+    for i in range(n):
+        for j in range(n):
+            s = i + j
+            if s < n:
+                a[i, j] = s * (s + 1) // 2
+                a[i, j] += j if s % 2 == 0 else i
+            else:
+                s = 2 * n - 2 - i - j
+                a[i, j] = n * n - s * (s + 1) // 2 - n
+                a[i, j] += j if s % 2 == 0 else i
+    return a
 
 
 def transform_experiment(img):
-    '''
     f = img[0]
     dct = dct1d(f)
+    dct = retain(dct, 4)
     idct = idct1d(dct)
-    print(f - idct)
+    print((f - idct).sum())
+
     dct = dct2d(img)
+    dct = retain(dct, 64 * 64)
     idct = idct2d(dct)
+
     print((img - idct).sum())
-    '''
     pass
