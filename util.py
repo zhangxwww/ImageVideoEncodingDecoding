@@ -19,6 +19,10 @@ def mse(p1, p2):
 
 
 def psnr(p1, p2):
+    if p1.dtype != np.uint8:
+        p1 = p1.astype(np.uint8)
+    if p2.dtype != np.uint8:
+        p2 = p2.astype(np.uint8)
     res = 2 * np.log10(255) - np.log10(mse(p1, p2))
     return res * 10
 
@@ -33,3 +37,7 @@ def generate_image_name(test_name, retains):
         fmt_dict['name'] = '2D_block'
     fmt_dict['retain'] = retains
     return template.format(**fmt_dict)
+
+def plot_curve(x, y, x_label, y_label, title):
+    # TODO
+    pass

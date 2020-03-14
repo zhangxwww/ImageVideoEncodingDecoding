@@ -1,6 +1,7 @@
 import numpy as np
 
 from transform import dct2d, idct2d
+from util import psnr, plot_curve
 
 
 def quantization_experiment(img):
@@ -11,9 +12,19 @@ def quantization_experiment(img):
     all_psnr = np.zeros((n_blocks, 20))
     for idx, block in enumerate(block_generator(img, n_block_rows, n_block_cols)):
         for iidx, alpha in enumerate(np.linspace(0.1, 2, 20)):
-            psnr = process_block(block, alpha)
-            all_psnr[idx, iidx] = psnr
-    pass
+            psnr_ = process_block(block, alpha, Q_)
+            all_psnr[idx, iidx] = psnr_
+    psnr_curve = all_psnr.mean(axis=0)
+    # TODO print psnr_curve[9]
+    plot_curve(x=np.linspace(0.1, 2, 20), y=psnr_curve,
+               x_label='a', y_label='PSNR', title='a-PSNR curve')
+    for idx, block in enumerate(block_generator(img, n_block_rows, n_block_cols)):
+        all_psnr = {'Canon': np.zeros((n_blocks,)),
+                    'Nikon': np.zeros((n_blocks,))}
+        for k, q in {'Canon': Canon_, 'Nikon': Nikon_}.items():
+            psnr_ = process_block(block, 1, q)
+            all_psnr[k][idx] = psnr_
+    # TODO print results
 
 
 def block_generator(img, n, m):
@@ -22,10 +33,16 @@ def block_generator(img, n, m):
             yield img[i * 8: (i + 1) * 8, j * 8:(j + 1) * 8]
 
 
-def process_block(block, alpha):
-    return 0
+def process_block(block, alpha, Q):
+    q = alpha * Q
+    F = dct2d(block)
+    quant = np.round(F / q)
+    # TODO inverse quantization?
+    f = idct2d(quant.astype(float))
+    return psnr(block, f)
 
-Canon = np.array([
+
+Canon_ = np.array([
     [1, 1, 1, 2, 3, 6, 8, 10],
     [1, 1, 2, 3, 4, 8, 9, 8],
     [2, 2, 2, 3, 6, 8, 10, 8],
@@ -36,7 +53,7 @@ Canon = np.array([
     [14, 13, 13, 15, 15, 14, 14, 14],
 ])
 
-Nikon = np.array([
+Nikon_ = np.array([
     [2, 1, 1, 2, 3, 5, 6, 7],
     [1, 1, 2, 2, 3, 7, 7, 7],
     [2, 2, 2, 3, 5, 7, 8, 7],
@@ -47,7 +64,7 @@ Nikon = np.array([
     [9, 11, 11, 12, 13, 12, 12, 12],
 ])
 
-Q = np.array([
+Q_ = np.array([
     [16, 11, 10, 16, 24, 40, 51, 61],
     [12, 12, 14, 19, 26, 58, 60, 55],
     [14, 13, 16, 24, 40, 57, 69, 56],
