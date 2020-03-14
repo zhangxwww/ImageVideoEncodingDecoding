@@ -3,7 +3,7 @@ from transform import transform_experiment
 
 
 def main():
-    img = read_image('../lena.bmp')
+    img = read_image('./lena.bmp')
     img = convert_to_gray(img)
     transform_experiment(img)
 
