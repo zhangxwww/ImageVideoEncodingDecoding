@@ -8,9 +8,9 @@ def timing(f):
         res = f(*args, **kwargs)
         end = time.time()
         delta = end - start
-        print('{} costs {:.3}s'.format(f.__doc__, delta))
+        print('Time: {:.3}s'.format(delta))
         return res
-
+    g.__doc__ = f.__doc__
     return g
 
 
@@ -21,3 +21,15 @@ def mse(p1, p2):
 def psnr(p1, p2):
     res = 2 * np.log10(255) - np.log10(mse(p1, p2))
     return res * 10
+
+def generate_image_name(test_name, retains):
+    template = '{name}_{retain}.png'
+    fmt_dict = {}
+    if test_name[0] == '1':
+        fmt_dict['name'] = '1D_whole'
+    elif 'whole' in test_name:
+        fmt_dict['name'] = '2D_whole'
+    else:
+        fmt_dict['name'] = '2D_block'
+    fmt_dict['retain'] = retains
+    return template.format(**fmt_dict)

@@ -1,7 +1,7 @@
 import numpy as np
 
-from imageProcesser import convert_to_image
-from util import timing, psnr
+from imageProcesser import convert_to_image, save_image
+from util import timing, psnr, generate_image_name
 
 
 def transform_experiment(img):
@@ -21,12 +21,13 @@ def transform_experiment(img):
         print('1/{} coefficients'.format(ret))
         for test in tests:
             t, r = test['fn_t'], test['fn_r']
+            print(t.__doc__)
             F = t(img_f, N // ret)
             f = r(F)
-            convert_to_image(f)
+            im = convert_to_image(f)
+            im_name = generate_image_name(t.__doc__, ret)
+            save_image(im, im_name)
             print('PSNR: {}'.format(psnr(img, f.astype(np.uint8))))
-
-
 
 
 @timing
