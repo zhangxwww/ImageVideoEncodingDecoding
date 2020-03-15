@@ -1,8 +1,9 @@
 import sys
 
-from imageProcesser import read_image, convert_to_gray
+from imageVideoProcessor import read_image, convert_to_gray, read_video
 from transform import transform_experiment
 from quantization import quantization_experiment
+from estimation import motion_estimation_experiment
 
 
 def main():
@@ -16,7 +17,8 @@ def main():
         img = convert_to_gray(img)
         quantization_experiment(img)
     if 3 in exp:
-        pass
+        video = read_video('./cars.avi', (0, 60))
+        motion_estimation_experiment(video)
 
 
 if __name__ == '__main__':

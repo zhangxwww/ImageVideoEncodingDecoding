@@ -1,6 +1,6 @@
 import numpy as np
 
-from imageProcesser import convert_to_image, save_image
+from imageVideoProcessor import convert_to_image, save_image
 from util import timing, psnr, generate_image_name
 
 
