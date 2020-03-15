@@ -1,5 +1,9 @@
 import time
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns;
+
+sns.set(color_codes=True)
 
 
 def timing(f):
@@ -10,6 +14,7 @@ def timing(f):
         delta = end - start
         print('Time: {:.3}s'.format(delta))
         return res
+
     g.__doc__ = f.__doc__
     return g
 
@@ -26,6 +31,7 @@ def psnr(p1, p2):
     res = 2 * np.log10(255) - np.log10(mse(p1, p2))
     return res * 10
 
+
 def generate_image_name(test_name, retains):
     template = '{name}_{retain}.png'
     fmt_dict = {}
@@ -38,6 +44,11 @@ def generate_image_name(test_name, retains):
     fmt_dict['retain'] = retains
     return template.format(**fmt_dict)
 
+
 def plot_curve(x, y, x_label, y_label, title):
-    # TODO
-    pass
+    x = list(map('{:.1f}'.format, x))
+    ax = sns.pointplot(x=x, y=y)
+    ax.set_title(title)
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    plt.show()

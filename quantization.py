@@ -12,19 +12,20 @@ def quantization_experiment(img):
     all_psnr = np.zeros((n_blocks, 20))
     for idx, block in enumerate(block_generator(img, n_block_rows, n_block_cols)):
         for iidx, alpha in enumerate(np.linspace(0.1, 2, 20)):
-            psnr_ = process_block(block, alpha, Q_)
+            psnr_ = process_block(block, alpha * Q_)
             all_psnr[idx, iidx] = psnr_
     psnr_curve = all_psnr.mean(axis=0)
-    # TODO print psnr_curve[9]
+    print('Average PSNR over all blocks: {:.3}'.format(psnr_curve[9]))
     plot_curve(x=np.linspace(0.1, 2, 20), y=psnr_curve,
                x_label='a', y_label='PSNR', title='a-PSNR curve')
+    all_psnr = {'Canon': np.zeros((n_blocks,)),
+                'Nikon': np.zeros((n_blocks,))}
     for idx, block in enumerate(block_generator(img, n_block_rows, n_block_cols)):
-        all_psnr = {'Canon': np.zeros((n_blocks,)),
-                    'Nikon': np.zeros((n_blocks,))}
         for k, q in {'Canon': Canon_, 'Nikon': Nikon_}.items():
-            psnr_ = process_block(block, 1, q)
+            psnr_ = process_block(block, q)
             all_psnr[k][idx] = psnr_
-    # TODO print results
+    for k in ['Canon', 'Nikon']:
+        print('Average PSNR over all blocks ({}): {:.3}'.format(k, all_psnr[k].mean()))
 
 
 def block_generator(img, n, m):
@@ -33,12 +34,12 @@ def block_generator(img, n, m):
             yield img[i * 8: (i + 1) * 8, j * 8:(j + 1) * 8]
 
 
-def process_block(block, alpha, Q):
-    q = alpha * Q
+def process_block(block, Q):
     F = dct2d(block)
-    quant = np.round(F / q)
+    quant = np.round(F / Q)
     # TODO inverse quantization?
-    f = idct2d(quant.astype(float))
+    F = quant * Q
+    f = idct2d(F.astype(float))
     return psnr(block, f)
 
 
