@@ -60,6 +60,7 @@ pip-delete-this-directory.txt
 lena.bmp
 cars.avi
 img/*
+result/*
 
 # Unit test / coverage reports
 htmlcov/

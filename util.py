@@ -52,3 +52,6 @@ def plot_curve(x, y, x_label, y_label, title):
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
     plt.show()
+
+def mad(p1, p2):
+    return np.abs(p1.astype(float) - p2.astype(float)).mean()

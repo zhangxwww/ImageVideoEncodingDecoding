@@ -59,28 +59,49 @@ def reconstruct_2(F):
 def reconstruct_3(F):
     return _idct_block(F)
 
+_dct_c = {}
+_dct_cos = {}
 
 def dct1d(f):
     f = f.reshape(-1, 1)
     n = f.shape[0]
-    c = np.ones((n,))
-    c[0] /= np.sqrt(2)
-    u = np.linspace(0, n - 1, n).reshape(1, -1)
-    x = np.linspace(0, n - 1, n).reshape(-1, 1)
-    cos = np.cos(np.pi * (2 * x + 1) * u / (2 * n))
+    global _dct_c, _dct_cos
+    if n in _dct_c.keys():
+        c = _dct_c[n]
+    else:
+        c = np.ones((n,))
+        c[0] /= np.sqrt(2)
+        _dct_c[n] = c
+    if n in _dct_cos.keys():
+        cos = _dct_cos[n]
+    else:
+        u = np.linspace(0, n - 1, n).reshape(1, -1)
+        x = np.linspace(0, n - 1, n).reshape(-1, 1)
+        cos = np.cos(np.pi * (2 * x + 1) * u / (2 * n))
+        _dct_cos[n] = cos
     F = np.sum(f * cos, axis=0)
     F = F * c * np.sqrt(2 / n)
     return F
 
+_idct_c = {}
+_idct_cos = {}
 
 def idct1d(F):
     F = F.reshape(-1, 1)
     n = F.shape[0]
-    c = np.ones((n, 1))
-    c[0, 0] /= np.sqrt(2)
-    u = np.linspace(0, n - 1, n).reshape(-1, 1)
-    x = np.linspace(0, n - 1, n).reshape(1, -1)
-    cos = np.cos(np.pi * (2 * x + 1) * u / (2 * n))
+    if n in _idct_c.keys():
+        c = _idct_c[n]
+    else:
+        c = np.ones((n, 1))
+        c[0, 0] /= np.sqrt(2)
+        _idct_c[n] = c
+    if n in _idct_cos.keys():
+        cos = _idct_cos[n]
+    else:
+        u = np.linspace(0, n - 1, n).reshape(-1, 1)
+        x = np.linspace(0, n - 1, n).reshape(1, -1)
+        cos = np.cos(np.pi * (2 * x + 1) * u / (2 * n))
+        _idct_cos[n] = cos
     f = np.sum(c * F * cos, axis=0)
     f = f * np.sqrt(2 / n)
     return f
@@ -102,13 +123,18 @@ def retain(F, n):
     mask = _zigzag(F.shape[0]) < n + 0
     return F * mask
 
+_a = {}
 
 def _A(n):
+    global _a
+    if n in _a.keys():
+        return _a[n]
     c = np.ones((1, n)) * np.sqrt(2 / n)
     c[0, 0] = np.sqrt(1 / n)
     i = np.linspace(0, n - 1, n).reshape(1, -1)
     j = np.linspace(0, n - 1, n).reshape(-1, 1)
     A = c * np.cos(np.pi * (2 * j + 1) * i / (2 * n))
+    _a[n] = A
     return A
 
 

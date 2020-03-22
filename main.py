@@ -17,7 +17,7 @@ def main():
         img = convert_to_gray(img)
         quantization_experiment(img)
     if 3 in exp:
-        video = read_video('./cars.avi', (0, 60))
+        video = read_video('./cars.avi', (110, 190))
         motion_estimation_experiment(video)
 
 

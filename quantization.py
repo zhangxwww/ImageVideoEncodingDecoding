@@ -21,10 +21,10 @@ def quantization_experiment(img):
     all_psnr = {'Canon': np.zeros((n_blocks,)),
                 'Nikon': np.zeros((n_blocks,))}
     for idx, block in enumerate(block_generator(img, n_block_rows, n_block_cols)):
-        for k, q in {'Canon': Canon_, 'Nikon': Nikon_}.items():
+        for k, q in {'Canon': Cannon_, 'Nikon': Nikon_}.items():
             psnr_ = process_block(block, q)
             all_psnr[k][idx] = psnr_
-    for k in ['Canon', 'Nikon']:
+    for k in ['Cannon', 'Nikon']:
         print('Average PSNR over all blocks ({}): {:.3}'.format(k, all_psnr[k].mean()))
 
 
@@ -37,13 +37,12 @@ def block_generator(img, n, m):
 def process_block(block, Q):
     F = dct2d(block)
     quant = np.round(F / Q)
-    # TODO inverse quantization?
     F = quant * Q
     f = idct2d(F.astype(float))
     return psnr(block, f)
 
 
-Canon_ = np.array([
+Cannon_ = np.array([
     [1, 1, 1, 2, 3, 6, 8, 10],
     [1, 1, 2, 3, 4, 8, 9, 8],
     [2, 2, 2, 3, 6, 8, 10, 8],
