@@ -10,6 +10,7 @@ REFERENCE_BLOCK_TOP = 220
 
 RETAIN = BLOCK_SIZE * BLOCK_SIZE // 16
 
+
 def motion_estimation_experiment(video):
     mse_p = pixel_domain_block_matching(video, 'pixel')
     mse_c = compression_domain_block_matching(video, 'compression')
