@@ -2,7 +2,7 @@ import numpy as np
 
 from imageVideoProcessor import draw_rectangle, save_video
 from transform import dct2d, retain, uniform_retain
-from util import mad, mse, plot_curve
+from util import mad, mse, plot_curve, timing
 
 BLOCK_SIZE = 16
 REFERENCE_BLOCK_LEFT = 310
@@ -12,24 +12,30 @@ RETAIN = BLOCK_SIZE * BLOCK_SIZE // 16
 
 
 def motion_estimation_experiment(video):
-    mse_p = pixel_domain_block_matching(video, 'pixel')
-    mse_c = compression_domain_block_matching(video, 'compression')
-    mse_p_r = pixel_domain_block_matching(video, 'pixel_part', RETAIN)
-    mse_c_r = compression_domain_block_matching(video, 'compression_part', RETAIN)
+    n_frames = video.shape[0]
+    print('Pixel domain block matching')
+    mse_p = pixel_domain_block_matching(video.copy(), 'pixel')
+    print('Compression domain block matching')
+    mse_c = compression_domain_block_matching(video.copy(), 'compression')
+    print('Pixel domain block matching with part pixels')
+    mse_p_r = pixel_domain_block_matching(video.copy(), 'pixel_part', RETAIN)
+    print('Compression domain block matching with part coefficients')
+    mse_c_r = compression_domain_block_matching(video.copy(), 'compression_part', RETAIN)
     plot_curve(
-        x=np.linspace(0, 79, 79).astype(int),
+        x=np.linspace(0, n_frames - 2, n_frames - 1).astype(int),
         y=[mse_p, mse_c, mse_p_r, mse_c_r],
         x_label='frame', y_label='mse',
         title='MSE curve',
         legend=(
             'Pixel domain',
-            'Compress domain',
+            'Compression domain',
             'Pixel domain with 1/16 pixels',
             'Compression domain with 1/16 coefficients'),
         major=5
     )
 
 
+@timing
 def pixel_domain_block_matching(video, name, ret=-1):
     n_frame = video.shape[0]
     reference_frame = video[0]
@@ -56,6 +62,7 @@ def pixel_domain_block_matching(video, name, ret=-1):
     return np.array(mse_curve)
 
 
+@timing
 def compression_domain_block_matching(video, name, ret=-1):
     n_frame = video.shape[0]
     reference_frame = video[0]
