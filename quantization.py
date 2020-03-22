@@ -16,12 +16,12 @@ def quantization_experiment(img):
             all_psnr[idx, iidx] = psnr_
     psnr_curve = all_psnr.mean(axis=0)
     print('Average PSNR over all blocks: {:.3}'.format(psnr_curve[9]))
-    plot_curve(x=np.linspace(0.1, 2, 20), y=psnr_curve,
+    plot_curve(x=list(map('{:.1f}'.format, np.linspace(0.1, 2, 20))), y=psnr_curve,
                x_label='a', y_label='PSNR', title='a-PSNR curve')
-    all_psnr = {'Canon': np.zeros((n_blocks,)),
+    all_psnr = {'Cannon': np.zeros((n_blocks,)),
                 'Nikon': np.zeros((n_blocks,))}
     for idx, block in enumerate(block_generator(img, n_block_rows, n_block_cols)):
-        for k, q in {'Canon': Cannon_, 'Nikon': Nikon_}.items():
+        for k, q in {'Cannon': Cannon_, 'Nikon': Nikon_}.items():
             psnr_ = process_block(block, q)
             all_psnr[k][idx] = psnr_
     for k in ['Cannon', 'Nikon']:

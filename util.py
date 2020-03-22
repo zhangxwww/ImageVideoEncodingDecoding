@@ -45,12 +45,19 @@ def generate_image_name(test_name, retains):
     return template.format(**fmt_dict)
 
 
-def plot_curve(x, y, x_label, y_label, title):
-    x = list(map('{:.1f}'.format, x))
-    ax = sns.pointplot(x=x, y=y)
+def plot_curve(x, y, x_label, y_label, title, legend):
+    ax = plt.gca()
+    color = ['#1F77B4', '#FF7F0E', '#2CA02C', '#D62728']
+    if isinstance(y, list):
+        for yy, c in zip(y, color):
+            sns.lineplot(x=x, y=yy, color=c)
+    else:
+        ax = sns.lineplot(x=x, y=y)
     ax.set_title(title)
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
+    ax.xaxis.set_major_locator(plt.MultipleLocator(5))
+    ax.legend(legend)
     plt.show()
 
 def mad(p1, p2):

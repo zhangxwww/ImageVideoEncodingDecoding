@@ -12,7 +12,13 @@ REFERENCE_BLOCK_TOP = 220
 def motion_estimation_experiment(video):
     mse_p = pixel_domain_block_matching(video)
     mse_c = compression_domain_block_matching(video)
-    #plot_curve(x=np.linspace(0, 59, 1), y=[mse_p, mse_c], x_label='frame', y_label='mse', title='MSE curve')
+    plot_curve(
+        x=np.linspace(0, 79, 79).astype(int),
+        y=[mse_p, mse_c],
+        x_label='frame', y_label='mse',
+        title='MSE curve',
+        legend=('Pixel domain', 'Compress domain')
+    )
 
 
 def pixel_domain_block_matching(video):
@@ -51,11 +57,10 @@ def compression_domain_block_matching(video):
     )
     ref_block = reference_frame[REFERENCE_BLOCK_TOP:REFERENCE_BLOCK_TOP + BLOCK_SIZE,
                 REFERENCE_BLOCK_LEFT:REFERENCE_BLOCK_LEFT + BLOCK_SIZE]
-    ref_dct = dct2d(ref_block)
     last_match = (REFERENCE_BLOCK_TOP, REFERENCE_BLOCK_LEFT)
     mse_curve = []
     for k in range(1, n_frame):
-        last, mse_ = match(ref_dct, video[k], last_match, trans=dct2d)
+        last, mse_ = match(ref_block, video[k], last_match, trans=dct2d)
         i, j = last
         draw_rectangle(
             video[k], j, i, BLOCK_SIZE, BLOCK_SIZE, 'compress_{}'.format(k)
@@ -67,6 +72,7 @@ def compression_domain_block_matching(video):
 
 
 def match(ref_block, frame, last_match, R=8, trans=None):
+    ref = trans(ref_block) if trans else ref_block
     last_match_top, last_match_left = last_match
     min_mad = float('inf')
     arg_min_mad = None
@@ -82,8 +88,9 @@ def match(ref_block, frame, last_match, R=8, trans=None):
             block = frame[last_match_top + i: last_match_top + i + BLOCK_SIZE,
                     last_match_left + j:last_match_left + j + BLOCK_SIZE]
             if trans:
-                block = trans(block)
-            m = mad(ref_block, block)
+                m = mad(ref, trans(block))
+            else:
+                m = mad(ref_block, block)
             if m < min_mad:
                 min_mad = m
                 arg_min_mad = (last_match_top + i, last_match_left + j)
