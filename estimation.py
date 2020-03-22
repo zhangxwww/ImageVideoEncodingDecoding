@@ -1,27 +1,35 @@
 import numpy as np
 
 from imageVideoProcessor import draw_rectangle, save_video
-from transform import dct2d
+from transform import dct2d, retain, uniform_retain
 from util import mad, mse, plot_curve
 
 BLOCK_SIZE = 16
 REFERENCE_BLOCK_LEFT = 310
 REFERENCE_BLOCK_TOP = 220
 
+RETAIN = BLOCK_SIZE * BLOCK_SIZE // 16
 
 def motion_estimation_experiment(video):
-    mse_p = pixel_domain_block_matching(video)
-    mse_c = compression_domain_block_matching(video)
+    mse_p = pixel_domain_block_matching(video, 'pixel')
+    mse_c = compression_domain_block_matching(video, 'compression')
+    mse_p_r = pixel_domain_block_matching(video, 'pixel_part', RETAIN)
+    mse_c_r = compression_domain_block_matching(video, 'compression_part', RETAIN)
     plot_curve(
         x=np.linspace(0, 79, 79).astype(int),
-        y=[mse_p, mse_c],
+        y=[mse_p, mse_c, mse_p_r, mse_c_r],
         x_label='frame', y_label='mse',
         title='MSE curve',
-        legend=('Pixel domain', 'Compress domain')
+        legend=(
+            'Pixel domain',
+            'Compress domain',
+            'Pixel domain with 1/16 pixels',
+            'Compression domain with 1/16 coefficients'),
+        major=5
     )
 
 
-def pixel_domain_block_matching(video):
+def pixel_domain_block_matching(video, name, ret=-1):
     n_frame = video.shape[0]
     reference_frame = video[0]
     ref_block = reference_frame[REFERENCE_BLOCK_TOP:REFERENCE_BLOCK_TOP + BLOCK_SIZE,
@@ -30,49 +38,51 @@ def pixel_domain_block_matching(video):
         reference_frame,
         REFERENCE_BLOCK_LEFT,
         REFERENCE_BLOCK_TOP,
-        BLOCK_SIZE, BLOCK_SIZE, 'pixel_{}'.format(0)
+        BLOCK_SIZE, BLOCK_SIZE, '{}_{}'.format(name, 0)
     )
     last_match = (REFERENCE_BLOCK_TOP, REFERENCE_BLOCK_LEFT)
     mse_curve = []
     for k in range(1, n_frame):
-        last, mse_ = match(ref_block, video[k], last_match)
+        trans = (lambda x: uniform_retain(x, ret)) if ret > 0 else None
+        last, mse_ = match(ref_block, video[k], last_match, trans=trans)
         i, j = last
         draw_rectangle(
-            video[k], j, i, BLOCK_SIZE, BLOCK_SIZE, 'pixel_{}'.format(k)
+            video[k], j, i, BLOCK_SIZE, BLOCK_SIZE, '{}_{}'.format(name, k)
         )
         last_match = (i, j)
         mse_curve.append(mse_)
-    save_video(n_frame, 'pixel')
+    save_video(n_frame, name)
     return np.array(mse_curve)
 
 
-def compression_domain_block_matching(video):
+def compression_domain_block_matching(video, name, ret=-1):
     n_frame = video.shape[0]
     reference_frame = video[0]
     draw_rectangle(
         reference_frame,
         REFERENCE_BLOCK_LEFT,
         REFERENCE_BLOCK_TOP,
-        BLOCK_SIZE, BLOCK_SIZE, 'compress_{}'.format(0)
+        BLOCK_SIZE, BLOCK_SIZE, '{}_{}'.format(name, 0)
     )
     ref_block = reference_frame[REFERENCE_BLOCK_TOP:REFERENCE_BLOCK_TOP + BLOCK_SIZE,
                 REFERENCE_BLOCK_LEFT:REFERENCE_BLOCK_LEFT + BLOCK_SIZE]
     last_match = (REFERENCE_BLOCK_TOP, REFERENCE_BLOCK_LEFT)
     mse_curve = []
     for k in range(1, n_frame):
-        last, mse_ = match(ref_block, video[k], last_match, trans=dct2d)
+        trans = (lambda x: retain(dct2d(x), ret)) if ret > 0 else dct2d
+        last, mse_ = match(ref_block, video[k], last_match, trans=trans)
         i, j = last
         draw_rectangle(
-            video[k], j, i, BLOCK_SIZE, BLOCK_SIZE, 'compress_{}'.format(k)
+            video[k], j, i, BLOCK_SIZE, BLOCK_SIZE, '{}_{}'.format(name, k)
         )
         last_match = (i, j)
         mse_curve.append(mse_)
-    save_video(n_frame, 'compress')
+    save_video(n_frame, name)
     return np.array(mse_curve)
 
 
 def match(ref_block, frame, last_match, R=8, trans=None):
-    ref = trans(ref_block) if trans else ref_block
+    ref = (trans(ref_block)) if trans else ref_block
     last_match_top, last_match_left = last_match
     min_mad = float('inf')
     arg_min_mad = None

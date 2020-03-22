@@ -45,10 +45,10 @@ def generate_image_name(test_name, retains):
     return template.format(**fmt_dict)
 
 
-def plot_curve(x, y, x_label, y_label, title, legend):
+def plot_curve(x, y, x_label, y_label, title, legend=None, major=1):
     ax = plt.gca()
-    color = ['#1F77B4', '#FF7F0E', '#2CA02C', '#D62728']
-    if isinstance(y, list):
+    color = ['#1F77B4', '#FF7F0E', '#FFBB78', '#D62728']
+    if isinstance(y, list) or y.ndim > 1:
         for yy, c in zip(y, color):
             sns.lineplot(x=x, y=yy, color=c)
     else:
@@ -56,9 +56,11 @@ def plot_curve(x, y, x_label, y_label, title, legend):
     ax.set_title(title)
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
-    ax.xaxis.set_major_locator(plt.MultipleLocator(5))
-    ax.legend(legend)
+    ax.xaxis.set_major_locator(plt.MultipleLocator(major))
+    if legend:
+        ax.legend(legend)
     plt.show()
+
 
 def mad(p1, p2):
     return np.abs(p1.astype(float) - p2.astype(float)).mean()

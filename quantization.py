@@ -9,15 +9,34 @@ def quantization_experiment(img):
     n, m = img.shape
     n_block_rows, n_block_cols = n // 8, m // 8
     n_blocks = n_block_cols * n_block_rows
-    all_psnr = np.zeros((n_blocks, 20))
+
+    q = {
+        'Q': Q_,
+        'Cannon': Cannon_,
+        'Nikon': Nikon_,
+        'Mine': Mine_
+    }
+
+    all_psnr = np.zeros((len(q), n_blocks, 20))
     for idx, block in enumerate(block_generator(img, n_block_rows, n_block_cols)):
         for iidx, alpha in enumerate(np.linspace(0.1, 2, 20)):
-            psnr_ = process_block(block, alpha * Q_)
-            all_psnr[idx, iidx] = psnr_
-    psnr_curve = all_psnr.mean(axis=0)
-    print('Average PSNR over all blocks: {:.3}'.format(psnr_curve[9]))
-    plot_curve(x=list(map('{:.1f}'.format, np.linspace(0.1, 2, 20))), y=psnr_curve,
-               x_label='a', y_label='PSNR', title='a-PSNR curve')
+            for iiidx, qq in enumerate(q.values()):
+                psnr_ = process_block(block, alpha * qq)
+                all_psnr[iiidx, idx, iidx] = psnr_
+    psnr_curve = all_psnr.mean(axis=1)
+    print('Average PSNR over all blocks with a=1:')
+    for idx, item in enumerate(q.keys()):
+        print('{}: {:.3}'.format(item, psnr_curve[idx, 9]))
+
+    plot_curve(
+        x=list(map('{:.1f}'.format, np.linspace(0.1, 2, 20))),
+        y=psnr_curve,
+        x_label='a', y_label='PSNR',
+        title='a-PSNR curve',
+        legend=q.keys()
+    )
+
+    '''
     all_psnr = {'Cannon': np.zeros((n_blocks,)),
                 'Nikon': np.zeros((n_blocks,))}
     for idx, block in enumerate(block_generator(img, n_block_rows, n_block_cols)):
@@ -26,6 +45,7 @@ def quantization_experiment(img):
             all_psnr[k][idx] = psnr_
     for k in ['Cannon', 'Nikon']:
         print('Average PSNR over all blocks ({}): {:.3}'.format(k, all_psnr[k].mean()))
+    '''
 
 
 def block_generator(img, n, m):
@@ -73,4 +93,15 @@ Q_ = np.array([
     [24, 35, 55, 64, 81, 104, 113, 92],
     [49, 64, 78, 87, 103, 121, 120, 101],
     [72, 92, 95, 98, 112, 100, 103, 99],
+])
+
+Mine_ = np.array([
+    [1, 2, 3, 4, 5, 6, 7, 8],
+    [2, 3, 4, 5, 6, 7, 8, 9],
+    [3, 4, 5, 6, 7, 8, 9, 10],
+    [4, 5, 6, 7, 8, 9, 10, 11],
+    [5, 6, 7, 8, 9, 10, 11, 12],
+    [6, 7, 8, 9, 10, 11, 12, 13],
+    [7, 8, 9, 10, 11, 12, 13, 14],
+    [8, 9, 10, 11, 12, 13, 14, 15]
 ])

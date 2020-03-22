@@ -59,8 +59,10 @@ def reconstruct_2(F):
 def reconstruct_3(F):
     return _idct_block(F)
 
+
 _dct_c = {}
 _dct_cos = {}
+
 
 def dct1d(f):
     f = f.reshape(-1, 1)
@@ -83,8 +85,10 @@ def dct1d(f):
     F = F * c * np.sqrt(2 / n)
     return F
 
+
 _idct_c = {}
 _idct_cos = {}
+
 
 def idct1d(F):
     F = F.reshape(-1, 1)
@@ -123,7 +127,14 @@ def retain(F, n):
     mask = _zigzag(F.shape[0]) < n + 0
     return F * mask
 
+
+def uniform_retain(p, ret):
+    p = p.reshape((ret, -1))
+    return p[:, -1]
+
+
 _a = {}
+
 
 def _A(n):
     global _a
