@@ -28,6 +28,8 @@ def transform_experiment(img):
             im_name = generate_image_name(t.__doc__, ret)
             save_image(im, im_name)
             print('PSNR: {:.3}'.format(psnr(img, f.astype(np.uint8))))
+        print()
+    print()
 
 
 @timing

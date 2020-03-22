@@ -13,6 +13,7 @@ RETAIN = BLOCK_SIZE * BLOCK_SIZE // 16
 
 def motion_estimation_experiment(video):
     n_frames = video.shape[0]
+    print('================')
     print('Pixel domain block matching')
     mse_p = pixel_domain_block_matching(video.copy(), 'pixel')
     print('Compression domain block matching')
