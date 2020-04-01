@@ -3,6 +3,8 @@ from PIL import Image
 import numpy as np
 import cv2
 
+from util import get_save_dir
+
 
 def read_image(filename):
     img = Image.open(filename)
@@ -19,10 +21,8 @@ def convert_to_image(img):
     return img
 
 
-def save_image(img, filename):
-    save_dir = './result'
-    if not os.path.isdir(save_dir):
-        os.mkdir(save_dir)
+def save_image(img, filename, exp=None):
+    save_dir = get_save_dir(exp)
     save_path = os.path.join(save_dir, filename)
     img.save(save_path)
 
@@ -54,10 +54,8 @@ def draw_rectangle(frame, x, y, w, h, index):
     return frame
 
 
-def save_video(n_frame, type_):
-    save_dir = './result'
-    if not os.path.isdir(save_dir):
-        os.mkdir(save_dir)
+def save_video(n_frame, type_, exp=None):
+    save_dir = get_save_dir(exp)
     save_path = os.path.join(save_dir, '{}.avi'.format(type_))
     video_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 25, (352, 288))
     for i in range(n_frame):

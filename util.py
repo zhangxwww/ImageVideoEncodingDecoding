@@ -1,4 +1,5 @@
 import time
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -12,7 +13,7 @@ def timing(f):
         res = f(*args, **kwargs)
         end = time.time()
         delta = end - start
-        print('Time: {:.3}s'.format(delta))
+        print('Time: {}s'.format(delta))
         return res
 
     g.__doc__ = f.__doc__
@@ -20,14 +21,10 @@ def timing(f):
 
 
 def mse(p1, p2):
-    return np.mean((p1 - p2) ** 2)
+    return np.mean((p1.astype(float) - p2.astype(float)) ** 2)
 
 
 def psnr(p1, p2):
-    if p1.dtype != np.uint8:
-        p1 = p1.astype(np.uint8)
-    if p2.dtype != np.uint8:
-        p2 = p2.astype(np.uint8)
     res = 2 * np.log10(255) - np.log10(mse(p1, p2))
     return res * 10
 
@@ -45,7 +42,7 @@ def generate_image_name(test_name, retains):
     return template.format(**fmt_dict)
 
 
-def plot_curve(x, y, x_label, y_label, title, legend=None, major=1):
+def plot_curve(x, y, x_label, y_label, title, legend=None, major=1, filename=''):
     ax = plt.gca()
     color = ['#1F77B4', '#FF7F0E', '#FFBB78', '#D62728']
     if isinstance(y, list) or y.ndim > 1:
@@ -59,8 +56,18 @@ def plot_curve(x, y, x_label, y_label, title, legend=None, major=1):
     ax.xaxis.set_major_locator(plt.MultipleLocator(major))
     if legend:
         ax.legend(legend)
-    plt.show()
+    save_dir = get_save_dir()
+    plt.savefig(os.path.join(save_dir, filename))
+    # plt.show()
 
 
 def mad(p1, p2):
     return np.abs(p1.astype(float) - p2.astype(float)).mean()
+
+def get_save_dir(exp=None):
+    save_dir = './result'
+    if exp:
+        save_dir = os.path.join(save_dir, exp)
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    return save_dir

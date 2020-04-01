@@ -26,7 +26,7 @@ def transform_experiment(img):
             f = r(F)
             im = convert_to_image(f)
             im_name = generate_image_name(t.__doc__, ret)
-            save_image(im, im_name)
+            save_image(im, im_name, exp='exp1')
             print('PSNR: {:.3}'.format(psnr(img, f.astype(np.uint8))))
         print()
     print()
@@ -51,15 +51,15 @@ def trial_3(img, ret):
 
 
 def reconstruct_1(F):
-    return _inverse_first_row_then_column(F)
+    return _inverse_first_row_then_column(F).astype('uint8')
 
 
 def reconstruct_2(F):
-    return idct2d(F)
+    return idct2d(F).astype('uint8')
 
 
 def reconstruct_3(F):
-    return _idct_block(F)
+    return _idct_block(F).astype('uint8')
 
 
 _dct_c = {}
@@ -130,9 +130,18 @@ def retain(F, n):
     return F * mask
 
 
+_u = {}
+
 def uniform_retain(p, ret):
-    p = p.reshape((ret, -1))
-    return p[:, -1]
+    p = p.reshape((-1,))
+    n = p.shape[0]
+    global _u
+    if (n, ret) in _u.keys():
+        index = _u[(n, ret)]
+    else:
+        index = np.random.choice(n, ret, replace=False)
+        _u[(n, ret)] = index
+    return p[index]
 
 
 _a = {}

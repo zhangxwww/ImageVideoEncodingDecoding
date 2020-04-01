@@ -21,7 +21,7 @@ def quantization_experiment(img):
     for idx, block in enumerate(block_generator(img, n_block_rows, n_block_cols)):
         for iidx, alpha in enumerate(np.linspace(0.1, 2, 20)):
             for iiidx, qq in enumerate(q.values()):
-                psnr_ = process_block(block, alpha * qq)
+                psnr_, f_ = process_block(block, alpha * qq)
                 all_psnr[iiidx, idx, iidx] = psnr_
     psnr_curve = all_psnr.mean(axis=1)
     print('================')
@@ -35,7 +35,8 @@ def quantization_experiment(img):
         y=psnr_curve,
         x_label='a', y_label='PSNR',
         title='a-PSNR curve',
-        legend=q.keys()
+        legend=q.keys(),
+        filename='a-PSNR'
     )
 
 
@@ -50,7 +51,7 @@ def process_block(block, Q):
     quant = np.round(F / Q)
     F = quant * Q
     f = idct2d(F.astype(float))
-    return psnr(block, f)
+    return psnr(block, f), f
 
 
 Cannon_ = np.array([
